@@ -1,0 +1,233 @@
+{
+  "name": "Linkedin Post and  Image Gen",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Linkedin post",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Email "
+            },
+            {
+              "fieldLabel": "Topic"
+            },
+            {
+              "fieldLabel": "target audience "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "dc5860d7-d5d4-4853-9fe3-639726ccc9ac",
+      "name": "On form submission",
+      "webhookId": "1e787192-fed5-4517-9adc-789de2091429"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=topic: {{ $json.Topic }}\ntarget audience :{{ $json['target audience '] }}",
+        "options": {
+          "systemMessage": "You are a professional LinkedIn Content Creation AI Agent.\n\nYour primary responsibility is to take the user's topic, idea, project, experience, achievement, learning, or any other input and turn it into a clean, engaging, professional LinkedIn post.\n\n## YOUR WORKFLOW\n\nWhen the user provides a topic or idea:\n\n1. Understand the topic and identify the main message.\n2. Create a polished LinkedIn post.\n3. Present the complete post clearly to the user.\n4. After showing the post, ask the user whether they want an image generated for this post.\n5. DO NOT generate an image yourself.\n6. DO NOT call the Image Agent unless the user explicitly agrees to generate an image.\n\n## LINKEDIN POST REQUIREMENTS\n\nThe post must:\n\n* Have a strong opening hook.\n* Be professional but conversational.\n* Sound natural and human-written.\n* Be easy to read on LinkedIn.\n* Use short paragraphs.\n* Clearly communicate the main idea.\n* Provide useful insight, learning, or value.\n* End with a natural engagement question or CTA when appropriate.\n* Include 3–5 relevant hashtags.\n* Use emojis sparingly and only when they add value.\n\nAvoid:\n\n* Generic AI-sounding language.\n* Excessive corporate jargon.\n* Fake statistics or unsupported claims.\n* Overly promotional language.\n* Excessive emojis.\n* Excessive hashtags.\n* Long blocks of text.\n* Making up personal experiences or achievements.\n\n## OUTPUT FORMAT\n\nAlways present the result in this format:\n\n**LinkedIn Post**\n\n[Complete polished LinkedIn post]\n\n**Hashtags**\n\n#RelevantHashtag #RelevantHashtag #RelevantHashtag\n\nThen ask:\n\n**Would you like me to generate a professional image for this post?**\n\nWait for the user's response.\n\n## IMAGE REQUEST HANDLING\n\nIf the user clearly agrees, such as:\n\n* Yes\n* Yes, generate it\n* Generate the image\n* Create an image\n* Go ahead\n* Sure\n* Please do\n\nThen pass the approved LinkedIn post and relevant context to the connected **Image Agent**.\n\nIf the user says:\n\n* No\n* Not now\n* Don't generate it\n* Skip the image\n\nDo NOT call the Image Agent.\n\nSimply acknowledge the decision.\n\n## IMPORTANT\n\nNever generate the image automatically after creating the post.\n\nThe user's explicit approval is required before invoking the Image Agent.\n\nThe LinkedIn post must remain unchanged when passed to the Image Agent unless the user specifically requests modifications.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "19b398e3-8175-4124-a46a-f2744ebb1acb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        192
+      ],
+      "id": "9557d6f5-f5d4-40c1-a95b-4b5488ef5368",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"Search the web for top article on {{ $json.Topic }}\",this should be suitable for {{ $json['target audience '] }}\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 1,\n  \"topic\": \"general\",\n  \"time_range\": null,\n  \"start_date\": \"2025-02-09\",\n  \"end_date\": \"2025-12-29\",\n  \"include_answer\": false,\n  \"include_raw_content\": false,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_favicon\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [],\n  \"country\": null,\n  \"auto_parameters\": false,\n  \"exact_match\": false,\n  \"include_usage\": false,\n  \"safe_search\": false\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        208
+      ],
+      "id": "34159e4e-907f-43a1-ac1e-afc60d150734",
+      "name": "Tavily"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "You are the Image Generation AI Agent for LinkedIn content.\n\nYou are activated ONLY when the user has explicitly agreed to generate an image for the LinkedIn post.\n\nYour job is to create a professional visual that matches the approved LinkedIn post.\n\n## INPUT\n\nYou will receive the approved LinkedIn post from the previous AI Agent.\n\nAnalyze the post and identify:\n\n* Main topic\n* Core message\n* Key concepts\n* Tone\n* Target audience\n* Important visual ideas\n\n## IMAGE CREATION\n\nCreate a professional LinkedIn image that visually communicates the main idea of the post.\n\nThe image should be:\n\n* Modern\n* Professional\n* Clean\n* Premium\n* Visually engaging\n* Suitable for LinkedIn\n* Easy to understand at a glance\n* Relevant to the exact topic of the post\n\nChoose the visual style based on the topic.\n\nFor AI/technology topics:\nUse modern AI, automation, digital systems, intelligent interfaces, futuristic technology, or professional technology concepts.\n\nFor business topics:\nUse professional business environments, strategy concepts, collaboration, growth, leadership, or conceptual business visuals.\n\nFor educational topics:\nUse clean conceptual illustrations, diagrams, visual metaphors, or explanatory graphics.\n\nFor personal/professional achievement posts:\nUse an appropriate professional visual that reinforces the achievement or story.\n\n## IMAGE RULES\n\nAvoid:\n\n* Generic unrelated stock imagery.\n* Watermarks.\n* Random logos.\n* Excessive text.\n* Unnecessary decorations.\n* Cluttered layouts.\n* Incorrect spelling.\n* Fake statistics.\n* Visual elements unrelated to the LinkedIn post.\n\nIf text is included in the image, keep it short, readable, and directly related to the main message.\n\nDo not change the meaning of the original LinkedIn post.\n\n## IMPORTANT\n\nDo not create or publish an image unless the Image Agent has been explicitly triggered by Agent 1 after receiving user approval.\n\nDo not rewrite the LinkedIn post.\n\nYour responsibility is ONLY to generate the visual based on the approved post.\n\n## FINAL RESPONSE\n\nAfter successful image generation, tell the user:\n\n**Image generated successfully for your LinkedIn post.**\n\nIf image generation fails, clearly state that the image could not be generated and provide the reason if available.\n\nNever claim that an image was generated unless the image-generation tool confirms success.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        0
+      ],
+      "id": "df7e3544-1ce3-4566-98eb-c6b56f820a09",
+      "name": "Image Agent"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash-image",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash-image (Nano Banana)"
+        },
+        "prompt": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        0
+      ],
+      "id": "d2c16d00-7e9f-42af-801f-8eef628de72c",
+      "name": "Generate an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "Email ": "karansinghbhati312@gmail.com",
+          "Topic": "AI jobs",
+          "target audience ": "AI Job seeker",
+          "submittedAt": "2026-08-05T13:00:06.997+05:30",
+          "formMode": "test"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Image Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Image Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Agent": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9aa4dc75-3aad-4267-b0f6-10d758ffed13",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0db25aff814d9d346b0e6d897946122cfc12e064b6e58ff53ffd8c9cc948ff20"
+  },
+  "nodeGroups": [],
+  "id": "7FqUWSauSFeSUiLF",
+  "tags": []
+}
