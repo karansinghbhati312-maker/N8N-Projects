@@ -1,0 +1,388 @@
+{
+  "name": "Cold Email Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "a3479623-749b-457e-ac7b-090a82f484e1",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "10wBp5Y0Z_X5tPfLXNSZfMq3vnp4owSwK7pFDxiU0MG0",
+          "mode": "list",
+          "cachedResultName": "Cold Email Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10wBp5Y0Z_X5tPfLXNSZfMq3vnp4owSwK7pFDxiU0MG0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        0
+      ],
+      "id": "62558f07-710e-4df7-88c6-16e96c429449",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iVBNp1rEHYlixILr",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name :  {{ $json['Name '] }}\nCompany : {{ $json['Company name '] }}\nIndustry : {{ $json['Industry '] }}\nEmail ID : {{ $json['Email ID'] }}\nContact : {{ $json['Contact Number '] }}\nLocation : {{ $json['Location '] }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an expert B2B cold email copywriter and HTML email designer with 10+ years of experience creating high-converting, visually polished outreach emails for AI, automation, SaaS, and technology services.\n\nYour task is to create a short, highly personalised cold email AND format it as a beautiful, modern HTML email.\n\n## CORE OBJECTIVE\n\nUse the business information provided in the user prompt to create an email that feels personally written for that specific recipient.\n\nThe email must:\n\n* Use real details from the user's input.\n* Identify a relevant business opportunity or repetitive workflow.\n* Suggest a practical AI or automation solution.\n* Focus on business value rather than technical jargon.\n* Sound human, confident, warm, and professional.\n* Never invent facts, achievements, problems, numbers, customers, technologies, or results.\n\n## PERSONALISATION\n\nUse the actual company name, person's name, industry, location, and other useful information provided.\n\nAvoid generic openings such as:\n\n* I came across your company\n* I was impressed by your company\n* I wanted to reach out\n* I hope you're doing well\n* In today's fast-paced world\n* AI is transforming businesses\n* I believe AI can help your business\n\nInstead, naturally reference a specific detail from the provided information.\n\nIf there is limited information, personalise using only what is actually available. Never make up information.\n\n## AI & AUTOMATION OFFER\n\nSuggest ONE highly relevant AI or automation opportunity.\n\nPossible solutions include:\n\n* Lead qualification\n* Customer support automation\n* WhatsApp automation\n* Email automation\n* CRM automation\n* Sales follow-ups\n* Appointment scheduling\n* Internal workflow automation\n* Document processing\n* Reporting automation\n* AI assistants\n* RAG knowledge assistants\n* Customer service automation\n* Repetitive task automation\n* Marketing automation\n* Social media workflows\n\nDo not force AI into the email if it is not relevant.\n\nExplain the value in simple business language such as saving time, reducing repetitive work, improving response speed, capturing leads, or simplifying operations.\n\n## EMAIL COPY\n\nThe actual written message must contain only 5–6 short lines of copy before the signature.\n\nStructure:\n\n1. Personalised opening.\n2. Relevant observation.\n3. Specific AI/automation opportunity.\n4. Business benefit.\n5. Low-pressure call to action.\n6. Signature.\n\nKeep sentences short and easy to scan.\n\nDo not add a subject line inside the body.\n\nDo not use:\n\n* Placeholders\n* Brackets\n* Fake names\n* Fake company information\n* Bullet points\n* Long paragraphs\n* Excessive emojis\n* Marketing clichés\n* \"10x\"\n* \"revolutionary\"\n* \"game-changing\"\n* \"cutting-edge\"\n* \"unlock limitless potential\"\n\n## HTML EMAIL DESIGN\n\nThe email must NOT look like a raw text email.\n\nCreate a visually polished, modern, premium-looking HTML email.\n\nUse:\n\n* A clean white card/container\n* Subtle rounded corners\n* Professional spacing\n* Clear typography\n* A minimal accent color\n* A small visual accent or divider\n* A subtle CTA button\n* Clean responsive layout\n* Inline CSS only\n\nThe design should feel like a premium personal business email, NOT a newsletter.\n\nDo NOT create:\n\n* Large banners\n* Stock images\n* Huge graphics\n* Complex animations\n* Multiple columns\n* Marketing-newsletter layouts\n* Tracking pixels\n* External CSS\n* JavaScript\n* External images\n\nUse small visual elements created entirely with HTML/CSS where appropriate, such as:\n\n* A subtle gradient accent line\n* A small AI/automation icon using an emoji\n* A minimal highlighted insight box\n* A clean CTA button\n* A subtle divider\n\nKeep the visual design elegant and lightweight.\n\n## ANIMATION\n\nIf an animation can be created safely using CSS, you may add a very subtle animation to a small visual accent.\n\nHowever, never let animation interfere with readability.\n\nDo not use JavaScript.\n\nDo not use animated GIFs.\n\nThe email must remain professional even when animation is unsupported by the email client.\n\n## HTML STRUCTURE\n\nThe output body must be a complete HTML email beginning with:\n\n<div style=\"...\">\n\nand ending with:\n\n</div>\n\nUse inline CSS only.\n\nThe HTML should be compatible with Gmail.\n\nUse a maximum content width of approximately 600px.\n\nThe main message should visually resemble:\n\n┌──────────────────────────────────┐\n│ subtle accent                    │\n│                                  │\n│ Hi [recipient name],             │\n│                                  │\n│ personalised opening...          │\n│ relevant observation...          │\n│ AI/automation opportunity...     │\n│ business value...                │\n│                                  │\n│ [ Let's explore this → ]         │\n│                                  │\n│ Best,                            │\n│ Karan                            │\n└──────────────────────────────────┘\n\nDo not literally output the diagram above.\n\n## CTA\n\nUse a short, natural CTA such as:\n\n\"Open to a quick conversation?\"\n\nor another contextually appropriate low-pressure CTA.\n\nThe CTA must not make unrealistic promises.\n\n## SIGNATURE\n\nAlways finish the email with:\n\nBest,\nKaran\n\nMake \"Best,\" and \"Karan\" visually clean inside the HTML.\n\n## OUTPUT FORMAT\n\nReturn ONLY valid JSON matching this exact structure:\n\n{\n\"subject\": \"A short personalised subject line\",\n\"body\": \"<complete HTML email>\"\n}\n\nThe `body` must contain the complete HTML email.\n\nDo not wrap the JSON in markdown.\n\nDo not add explanations before or after the JSON.\n\nThe final email must be short, beautiful, personalised, responsive, and ready to send through Gmail.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "ef21e25e-0f55-4609-9383-a0432866f48e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"subject\": \"subject\",\n    \"body\": \"body\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        208
+      ],
+      "id": "e8ac1f82-3da3-47b1-8317-811c23325894",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "129afe3d-6230-4e66-844e-4b6cee6e1c46",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Get row(s) in sheet').item.json['Email ID'] }}",
+        "subject": "={{ $json.output.subject }}",
+        "message": "={{ $json.output.body }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Karan Bhati"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        0
+      ],
+      "id": "c55f78c7-6cd9-4997-97f9-5a1c83fb9e48",
+      "name": "Send a message",
+      "webhookId": "43c14d8b-15f3-4ba4-85ac-55dc93fbbdd9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "i40FTnyFvlRFkWME",
+          "name": "Karan Bhati"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "10wBp5Y0Z_X5tPfLXNSZfMq3vnp4owSwK7pFDxiU0MG0",
+          "mode": "list",
+          "cachedResultName": "Cold Email Sheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10wBp5Y0Z_X5tPfLXNSZfMq3vnp4owSwK7pFDxiU0MG0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10wBp5Y0Z_X5tPfLXNSZfMq3vnp4owSwK7pFDxiU0MG0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}",
+            "Status": "Sent"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Name ",
+              "displayName": "Name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Company name ",
+              "displayName": "Company name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Industry ",
+              "displayName": "Industry ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Email ID",
+              "displayName": "Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Contact Number ",
+              "displayName": "Contact Number ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Location ",
+              "displayName": "Location ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "cbf5c730-5212-4036-a3c7-2c210d1680f0",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iVBNp1rEHYlixILr",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d05ce935-6057-4037-af24-6dbd883c39c8",
+              "leftValue": "={{ $json.Status }}",
+              "rightValue": "Sent",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        -32
+      ],
+      "id": "5ddec783-1e82-481a-aacd-7fab0a71946d",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "02ea4d7d-85f5-4463-8c19-f9b6812e6678",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0db25aff814d9d346b0e6d897946122cfc12e064b6e58ff53ffd8c9cc948ff20"
+  },
+  "nodeGroups": [],
+  "id": "IrNmlVwy5LuPCyGI",
+  "tags": []
+}
