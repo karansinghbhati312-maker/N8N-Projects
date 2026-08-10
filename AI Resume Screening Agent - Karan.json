@@ -1,0 +1,613 @@
+{
+  "name": "AI Resume Screening Agent - Fixed",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Resume Screening Agent",
+        "formDescription": "Upload a job description and candidate resume to automatically evaluate the candidate's suitability for the role.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Job Description",
+              "fieldType": "dropdown",
+              "fieldName": "job_description",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "AI Engineer"
+                  },
+                  {
+                    "option": "Human Resource "
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Candidate Resume",
+              "fieldType": "file",
+              "fieldName": "resume",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "92f1312f-aafe-4e20-8982-4eb9c7817c59",
+      "name": "On form submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -208,
+        -240
+      ],
+      "webhookId": "a6e5dad0-7aa8-4a57-92c5-58d06496366a"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "resume",
+        "options": {}
+      },
+      "id": "aac7377c-31b3-4d06-9350-f0a266568bcf",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        -272
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are screening a candidate for the following job.\n\nJOB DESCRIPTION:\n{{ $('On form submission').item.json.job_description }}\n\nCANDIDATE RESUME:\n{{ $json.text }}\n\nAnalyze the candidate against the job description.\n\nEvaluate:\n1. Required skills match\n2. Relevant experience\n3. Responsibilities alignment\n4. Preferred skills\n5. Education/certifications if relevant\n\nGive an overall score from 0 to 100.\n\nUse:\n80-100 = SHORTLIST\n65-79 = REVIEW\n0-64 = REJECT\n\nDo not make assumptions about information that is not present in the resume.\nDo not use age, gender, religion, caste, race, marital status, disability, photograph, or other protected/sensitive characteristics in the evaluation.\n\nReturn a concise recruiter-friendly assessment.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        288,
+        -272
+      ],
+      "id": "5a39aa8e-46b9-4153-978c-8cf0f9a7df53",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "dd8339d2-f292-468f-81f3-875ceacad561",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"candidate_name\": \"John Doe\",\n  \"overall_score\": 85,\n  \"decision\": \"SHORTLIST\",\n  \"matched_skills\": [\n    \"Python\",\n    \"n8n\",\n    \"REST APIs\",\n    \"LLMs\",\n    \"RAG\",\n    \"AI Agents\"\n  ],\n  \"missing_skills\": [\n    \"None\"\n  ],\n  \"experience_match\": \"Strong match with 4 years of relevant AI automation experience.\",\n  \"strengths\": [\n    \"Strong experience building AI automation workflows\",\n    \"Experience with LLMs and RAG\",\n    \"Good API integration experience\"\n  ],\n  \"concerns\": [\n    \"No major concerns identified\"\n  ],\n  \"recruiter_summary\": \"Strong candidate for the AI Automation Engineer role with relevant experience in AI agents, automation, APIs, LLMs, and RAG.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        16
+      ],
+      "id": "83521778-3d7f-400a-8714-b6ae4c2596c1",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "869b8843-f70a-4515-ab26-44a244bd1ef5",
+              "leftValue": "={{ $json.output.overall_score }}",
+              "rightValue": 79,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -288
+      ],
+      "id": "33f08a1b-634b-4cfb-bf1d-f3fc5e1915b0",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HQp9qfpYtOlG008EFLtv2vshd4g7GzVXEbeqA5HfwTE",
+          "mode": "list",
+          "cachedResultName": "AI Resume Screening ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HQp9qfpYtOlG008EFLtv2vshd4g7GzVXEbeqA5HfwTE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HQp9qfpYtOlG008EFLtv2vshd4g7GzVXEbeqA5HfwTE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Candidate Name": "={{ $json.output.candidate_name }}",
+            "Score": "={{ $json.output.overall_score }}",
+            "Decision": "={{ $json.output.decision }}",
+            "Matched Skills": "={{ $json.output.matched_skills.join(', ') }}",
+            "Missing Skills": "={{ $json.output.missing_skills.join(', ') }}",
+            "Experience Match": "={{ $json.output.experience_match }}",
+            "Strengths": "={{ $json.output.strengths.join(', ') }}",
+            "Concerns": "={{ $json.output.concerns.join(', ') }}",
+            "Recruiter Summary": "={{ $json.output.recruiter_summary }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Candidate Name",
+              "displayName": "Candidate Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Decision",
+              "displayName": "Decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Experience Match",
+              "displayName": "Experience Match",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Strengths",
+              "displayName": "Strengths",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Concerns",
+              "displayName": "Concerns",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recruiter Summary",
+              "displayName": "Recruiter Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        944,
+        -336
+      ],
+      "id": "0d485abe-c134-41df-ac54-3c49b3067f46",
+      "name": "Shortlisted",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iVBNp1rEHYlixILr",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1HQp9qfpYtOlG008EFLtv2vshd4g7GzVXEbeqA5HfwTE",
+          "mode": "list",
+          "cachedResultName": "AI Resume Screening ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HQp9qfpYtOlG008EFLtv2vshd4g7GzVXEbeqA5HfwTE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1HQp9qfpYtOlG008EFLtv2vshd4g7GzVXEbeqA5HfwTE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Candidate Name": "={{ $json.output.candidate_name }}",
+            "Score": "={{ $json.output.overall_score }}",
+            "Decision": "={{ $json.output.decision }}",
+            "Matched Skills": "={{ $json.output.matched_skills }}",
+            "Missing Skills": "={{ $json.output.missing_skills }}",
+            "Experience Match": "={{ $json.output.experience_match }}",
+            "Strengths": "={{ $json.output.strengths }}",
+            "Concerns": "={{ $json.output.concerns }}",
+            "Recruiter Summary": "={{ $json.output.recruiter_summary }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Candidate Name",
+              "displayName": "Candidate Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score",
+              "displayName": "Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Decision",
+              "displayName": "Decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Matched Skills",
+              "displayName": "Matched Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Missing Skills",
+              "displayName": "Missing Skills",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Experience Match",
+              "displayName": "Experience Match",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Strengths",
+              "displayName": "Strengths",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Concerns",
+              "displayName": "Concerns",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recruiter Summary",
+              "displayName": "Recruiter Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        928,
+        -96
+      ],
+      "id": "7ea8744e-dd29-4261-bcb1-4176a19359ab",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iVBNp1rEHYlixILr",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6149b011-1d83-4d62-a5b1-cbb69752cf93",
+              "leftValue": "={{ $json.Decision }}",
+              "rightValue": "SHORTLIST",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1168,
+        -336
+      ],
+      "id": "397bf74f-3f7f-48a8-9fa7-7e0c972768ea",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "sendTo": "karansinghbhati312@gmail.com",
+        "subject": "={{ $json.hr_email_subject }}",
+        "message": "={{ $json.hr_email_html }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "resume"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        -432
+      ],
+      "id": "0cf42ab9-80cc-44f2-90cc-4b5fcced1b33",
+      "name": "HR Email",
+      "webhookId": "74ffaf54-3645-4cfb-899c-578dd08892ea",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "i40FTnyFvlRFkWME",
+          "name": "Karan Bhati"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ======================================================\n// AI RESUME SCREENING - HR EMAIL FORMATTER\n// FULL FIXED VERSION\n// ======================================================\n\n\n// ======================================================\n// 1. GET DATA FROM THE CORRECT NODES\n// ======================================================\n\n// Current incoming item\n// This will normally be coming from the Google Sheets node\nconst inputItem = $input.item;\n\nconst currentData = inputItem?.json || {};\n\n\n// ------------------------------------------------------\n// IMPORTANT:\n// Get the ORIGINAL AI screening result directly\n// from the AI Agent node.\n// ------------------------------------------------------\n\nconst aiItem = $('AI Agent').first();\n\nconst aiJson = aiItem?.json || {};\n\n\n// AI Agent usually returns:\n// {\n//   output: {\n//      candidate_name: \"...\",\n//      overall_score: 85,\n//      ...\n//   }\n// }\n//\n// But sometimes \"output\" may be a JSON string.\n// This code supports both formats.\n\nlet result = aiJson.output ?? aiJson;\n\n\n// ------------------------------------------------------\n// If AI output is a JSON string, convert it to an object\n// ------------------------------------------------------\n\nif (typeof result === 'string') {\n\n  try {\n\n    // Remove possible markdown code fences\n    let cleaned = result\n      .replace(/```json/gi, '')\n      .replace(/```/g, '')\n      .trim();\n\n    result = JSON.parse(cleaned);\n\n  } catch (error) {\n\n    console.log(\n      'Could not parse AI output as JSON:',\n      error.message\n    );\n\n    result = {};\n  }\n}\n\n\n// Make absolutely sure result is an object\nif (\n  !result ||\n  typeof result !== 'object' ||\n  Array.isArray(result)\n) {\n  result = {};\n}\n\n\n// ======================================================\n// 2. GET ORIGINAL FORM DATA\n// ======================================================\n\nconst formItem = $('On form submission').first();\n\nconst formData = formItem?.json || {};\n\n\n// Preserve uploaded resume binary\nconst binary =\n  formItem?.binary ||\n  inputItem?.binary ||\n  {};\n\n\n// ======================================================\n// 3. HELPER FUNCTIONS\n// ======================================================\n\n\n// Safe fallback for missing values\nfunction safe(value, fallback = 'Not provided') {\n\n  if (\n    value === undefined ||\n    value === null ||\n    value === ''\n  ) {\n    return fallback;\n  }\n\n  return value;\n}\n\n\n// Convert values into arrays safely\nfunction normalizeArray(value) {\n\n  if (Array.isArray(value)) {\n    return value\n      .filter(item =>\n        item !== undefined &&\n        item !== null &&\n        String(item).trim() !== ''\n      )\n      .map(item => String(item).trim());\n  }\n\n  if (\n    value === undefined ||\n    value === null ||\n    value === ''\n  ) {\n    return [];\n  }\n\n  // Support stringified JSON arrays\n  if (typeof value === 'string') {\n\n    const trimmed = value.trim();\n\n    if (\n      trimmed.startsWith('[') &&\n      trimmed.endsWith(']')\n    ) {\n\n      try {\n\n        const parsed = JSON.parse(trimmed);\n\n        if (Array.isArray(parsed)) {\n          return parsed\n            .filter(Boolean)\n            .map(item => String(item).trim());\n        }\n\n      } catch (error) {\n        // Continue below\n      }\n    }\n\n    return [trimmed];\n  }\n\n  return [String(value)];\n}\n\n\n// Escape dynamic AI-generated text\n// before placing it inside HTML\nfunction escapeHtml(value) {\n\n  return String(value ?? '')\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;')\n    .replace(/'/g, '&#039;');\n}\n\n\n// ======================================================\n// 4. CANDIDATE INFORMATION\n// ======================================================\n\nconst candidateName = safe(\n  result.candidate_name,\n  'Candidate'\n);\n\n\n// Score\nlet score = Number(result.overall_score);\n\nif (!Number.isFinite(score)) {\n  score = 0;\n}\n\n\n// Keep score between 0 and 100\nscore = Math.min(\n  Math.max(Math.round(score), 0),\n  100\n);\n\n\n// Decision\nconst decision = String(\n  safe(\n    result.decision,\n    score >= 80\n      ? 'SHORTLIST'\n      : score >= 65\n        ? 'REVIEW'\n        : 'REJECT'\n  )\n).toUpperCase();\n\n\n// Skills\nconst matchedSkills = normalizeArray(\n  result.matched_skills\n);\n\nconst missingSkills = normalizeArray(\n  result.missing_skills\n);\n\n\n// Strengths / concerns\nconst strengths = normalizeArray(\n  result.strengths\n);\n\nconst concerns = normalizeArray(\n  result.concerns\n);\n\n\n// Experience\nconst experienceMatch = safe(\n  result.experience_match,\n  'Not provided'\n);\n\n\n// Recruiter summary\nconst recruiterSummary = safe(\n  result.recruiter_summary,\n  'No recruiter summary was generated.'\n);\n\n\n// ======================================================\n// 5. JOB INFORMATION\n// ======================================================\n\n// Your form field is called \"job_description\",\n// so get the selected role directly from the form.\n\nconst jobTitle = safe(\n  formData.job_description,\n  currentData.job_title ||\n  currentData.jobTitle ||\n  'AI Automation Engineer'\n);\n\n\n// ======================================================\n// 6. SCORE DESIGN\n// ======================================================\n\nlet scoreLabel = 'Low Match';\n\nlet scoreColor = '#dc2626';\n\nlet scoreBackground = '#fef2f2';\n\nlet scoreBorder = '#fecaca';\n\n\nif (score >= 80) {\n\n  scoreLabel = 'Strong Match';\n\n  scoreColor = '#15803d';\n\n  scoreBackground = '#ecfdf5';\n\n  scoreBorder = '#bbf7d0';\n\n}\nelse if (score >= 65) {\n\n  scoreLabel = 'Potential Match';\n\n  scoreColor = '#b45309';\n\n  scoreBackground = '#fffbeb';\n\n  scoreBorder = '#fde68a';\n\n}\n\n\n// ======================================================\n// 7. MATCHED SKILLS HTML\n// ======================================================\n\nconst matchedSkillHTML = matchedSkills.length\n\n  ? matchedSkills\n      .map(skill => `\n\n        <span style=\"\n          display:inline-block;\n          background:#E8F5E9;\n          color:#1B5E20;\n          border-radius:20px;\n          padding:7px 12px;\n          margin:4px 4px 4px 0;\n          font-size:13px;\n          font-weight:600;\n        \">\n          ✓ ${escapeHtml(skill)}\n        </span>\n\n      `)\n      .join('')\n\n  : `\n      <span style=\"color:#777;\">\n        No matched skills identified\n      </span>\n    `;\n\n\n// ======================================================\n// 8. MISSING SKILLS HTML\n// ======================================================\n\nconst missingSkillHTML = missingSkills.length\n\n  ? missingSkills\n      .map(skill => `\n\n        <span style=\"\n          display:inline-block;\n          background:#FFF3E0;\n          color:#E65100;\n          border-radius:20px;\n          padding:7px 12px;\n          margin:4px 4px 4px 0;\n          font-size:13px;\n          font-weight:600;\n        \">\n          ${escapeHtml(skill)}\n        </span>\n\n      `)\n      .join('')\n\n  : `\n      <span style=\"color:#777;\">\n        No significant skill gaps identified\n      </span>\n    `;\n\n\n// ======================================================\n// 9. STRENGTHS HTML\n// ======================================================\n\nconst strengthsHTML = strengths.length\n\n  ? strengths\n      .map(strength => `\n\n        <li style=\"margin-bottom:7px;\">\n          ${escapeHtml(strength)}\n        </li>\n\n      `)\n      .join('')\n\n  : `\n      <li>\n        No specific strengths provided.\n      </li>\n    `;\n\n\n// ======================================================\n// 10. CONCERNS HTML\n// ======================================================\n\nconst concernsHTML = concerns.length\n\n  ? concerns\n      .map(concern => `\n\n        <li style=\"margin-bottom:7px;\">\n          ${escapeHtml(concern)}\n        </li>\n\n      `)\n      .join('')\n\n  : `\n      <li>\n        No major concerns identified.\n      </li>\n    `;\n\n\n// ======================================================\n// 11. EMAIL HTML\n// ======================================================\n\nconst emailHtml = `\n\n<!DOCTYPE html>\n\n<html>\n\n<head>\n\n<meta charset=\"UTF-8\">\n\n<meta\n  name=\"viewport\"\n  content=\"width=device-width, initial-scale=1.0\"\n>\n\n</head>\n\n\n<body style=\"\n  margin:0;\n  padding:0;\n  background:#f4f7fb;\n  font-family:Arial,Helvetica,sans-serif;\n  color:#172033;\n\">\n\n\n<table\n  width=\"100%\"\n  cellpadding=\"0\"\n  cellspacing=\"0\"\n  border=\"0\"\n  style=\"\n    background:#f4f7fb;\n    padding:30px 10px;\n  \"\n>\n\n\n<tr>\n\n<td align=\"center\">\n\n\n<table\n  width=\"680\"\n  cellpadding=\"0\"\n  cellspacing=\"0\"\n  border=\"0\"\n  style=\"\n    max-width:680px;\n    width:100%;\n    background:#ffffff;\n    border-radius:16px;\n    overflow:hidden;\n    box-shadow:0 5px 25px rgba(0,0,0,0.08);\n  \"\n>\n\n\n<!-- ================================================= -->\n<!-- HEADER -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:32px;\n  background:linear-gradient(\n    135deg,\n    #172554,\n    #2563eb\n  );\n  color:white;\n\">\n\n\n<div style=\"\n  font-size:13px;\n  letter-spacing:1.5px;\n  text-transform:uppercase;\n  opacity:.85;\n\">\n\nAI RECRUITMENT ASSISTANT\n\n</div>\n\n\n<h1 style=\"\n  margin:8px 0 5px;\n  font-size:28px;\n\">\n\nCandidate Shortlisted 🎯\n\n</h1>\n\n\n<p style=\"\n  margin:0;\n  font-size:15px;\n  opacity:.9;\n\">\n\nAI-powered resume screening report\n\n</p>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- CANDIDATE -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:30px 32px 10px;\n\">\n\n\n<table\n  width=\"100%\"\n  cellpadding=\"0\"\n  cellspacing=\"0\"\n  border=\"0\"\n>\n\n\n<tr>\n\n\n<td valign=\"top\">\n\n\n<div style=\"\n  font-size:12px;\n  color:#64748b;\n  text-transform:uppercase;\n  letter-spacing:.8px;\n\">\n\nCandidate\n\n</div>\n\n\n<div style=\"\n  font-size:24px;\n  font-weight:bold;\n  margin-top:5px;\n\">\n\n${escapeHtml(candidateName)}\n\n</div>\n\n\n<div style=\"\n  margin-top:5px;\n  color:#64748b;\n  font-size:14px;\n\">\n\nApplied for:\n<strong>\n${escapeHtml(jobTitle)}\n</strong>\n\n</div>\n\n\n</td>\n\n\n<td\n  align=\"right\"\n  valign=\"top\"\n>\n\n\n<div style=\"\n  display:inline-block;\n  background:${scoreBackground};\n  border:1px solid ${scoreBorder};\n  border-radius:12px;\n  padding:12px 18px;\n\">\n\n\n<div style=\"\n  font-size:30px;\n  font-weight:bold;\n  color:${scoreColor};\n\">\n\n${score}%\n\n</div>\n\n\n<div style=\"\n  font-size:12px;\n  color:${scoreColor};\n  font-weight:bold;\n\">\n\n${scoreLabel}\n\n</div>\n\n\n</div>\n\n\n</td>\n\n\n</tr>\n\n</table>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- SCORE BAR -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:10px 32px 25px;\n\">\n\n\n<div style=\"\n  height:10px;\n  background:#e5e7eb;\n  border-radius:10px;\n  overflow:hidden;\n\">\n\n\n<div style=\"\n  width:${score}%;\n  height:10px;\n  background:${scoreColor};\n  border-radius:10px;\n\">\n\n</div>\n\n\n</div>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- RECRUITER SUMMARY -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:0 32px 25px;\n\">\n\n\n<div style=\"\n  background:#f8fafc;\n  border-left:4px solid #2563eb;\n  border-radius:8px;\n  padding:18px;\n\">\n\n\n<div style=\"\n  font-size:13px;\n  font-weight:bold;\n  color:#2563eb;\n  margin-bottom:8px;\n\">\n\nRECRUITER SUMMARY\n\n</div>\n\n\n<div style=\"\n  font-size:14px;\n  line-height:1.6;\n  color:#334155;\n\">\n\n${escapeHtml(recruiterSummary)}\n\n</div>\n\n\n</div>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- EXPERIENCE MATCH -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:0 32px 25px;\n\">\n\n\n<h3 style=\"\n  margin:0 0 12px;\n  font-size:17px;\n\">\n\nExperience Match\n\n</h3>\n\n\n<div style=\"\n  padding:14px;\n  background:#f8fafc;\n  border-radius:8px;\n  color:#334155;\n  font-size:14px;\n  line-height:1.6;\n\">\n\n${escapeHtml(experienceMatch)}\n\n</div>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- MATCHED SKILLS -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:0 32px 25px;\n\">\n\n\n<h3 style=\"\n  margin:0 0 10px;\n  font-size:17px;\n\">\n\nMatched Skills\n\n</h3>\n\n\n<div>\n\n${matchedSkillHTML}\n\n</div>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- SKILL GAPS -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:0 32px 25px;\n\">\n\n\n<h3 style=\"\n  margin:0 0 10px;\n  font-size:17px;\n\">\n\nSkill Gaps\n\n</h3>\n\n\n<div>\n\n${missingSkillHTML}\n\n</div>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- STRENGTHS + CONCERNS -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  padding:0 32px 25px;\n\">\n\n\n<table\n  width=\"100%\"\n  cellpadding=\"0\"\n  cellspacing=\"0\"\n  border=\"0\"\n>\n\n\n<tr>\n\n\n<td\n  width=\"48%\"\n  valign=\"top\"\n  style=\"\n    background:#f0fdf4;\n    border-radius:10px;\n    padding:18px;\n  \"\n>\n\n\n<div style=\"\n  color:#15803d;\n  font-weight:bold;\n  margin-bottom:10px;\n\">\n\n✓ KEY STRENGTHS\n\n</div>\n\n\n<ul style=\"\n  padding-left:18px;\n  margin:0;\n  color:#334155;\n  font-size:13px;\n  line-height:1.5;\n\">\n\n${strengthsHTML}\n\n</ul>\n\n\n</td>\n\n\n<td width=\"4%\">\n\n</td>\n\n\n<td\n  width=\"48%\"\n  valign=\"top\"\n  style=\"\n    background:#fff7ed;\n    border-radius:10px;\n    padding:18px;\n  \"\n>\n\n\n<div style=\"\n  color:#c2410c;\n  font-weight:bold;\n  margin-bottom:10px;\n\">\n\n⚠ CONSIDERATIONS\n\n</div>\n\n\n<ul style=\"\n  padding-left:18px;\n  margin:0;\n  color:#334155;\n  font-size:13px;\n  line-height:1.5;\n\">\n\n${concernsHTML}\n\n</ul>\n\n\n</td>\n\n\n</tr>\n\n</table>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- RESUME -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td\n  align=\"center\"\n  style=\"\n    padding:10px 32px 35px;\n  \"\n>\n\n\n<div style=\"\n  background:#eff6ff;\n  border-radius:10px;\n  padding:18px;\n  color:#1e40af;\n  font-size:14px;\n  line-height:1.6;\n\">\n\n📎\n<strong>\nCandidate resume attached\n</strong>\n\n<br>\n\nPlease review the attached resume before proceeding\nwith the interview process.\n\n</div>\n\n\n</td>\n\n</tr>\n\n\n<!-- ================================================= -->\n<!-- FOOTER -->\n<!-- ================================================= -->\n\n\n<tr>\n\n<td style=\"\n  background:#f8fafc;\n  padding:22px 32px;\n  text-align:center;\n  color:#94a3b8;\n  font-size:12px;\n  line-height:1.5;\n\">\n\n\nThis candidate was evaluated automatically by the\n\n<strong>\nAI Resume Screening Agent\n</strong>.\n\n\n<br><br>\n\n\nPlease validate AI-generated recommendations before\nmaking hiring decisions.\n\n\n</td>\n\n</tr>\n\n\n</table>\n\n\n</td>\n\n</tr>\n\n\n</table>\n\n\n</body>\n\n</html>\n\n`;\n\n\n// ======================================================\n// 12. EMAIL SUBJECT\n// ======================================================\n\nconst emailSubject =\n  `🎯 Candidate Shortlisted — ${candidateName} | ${jobTitle}`;\n\n\n// ======================================================\n// 13. DEBUG INFORMATION\n// ======================================================\n\n// These values are also returned so that you can\n// easily inspect the node output in n8n.\n\nconst debugData = {\n\n  ai_result_found:\n    Object.keys(result).length > 0,\n\n  candidate_name:\n    candidateName,\n\n  overall_score:\n    score,\n\n  decision:\n    decision,\n\n  matched_skills_count:\n    matchedSkills.length,\n\n  missing_skills_count:\n    missingSkills.length,\n\n  strengths_count:\n    strengths.length,\n\n  concerns_count:\n    concerns.length,\n\n  job_title:\n    jobTitle\n\n};\n\n\n// ======================================================\n// 14. RETURN DATA\n// ======================================================\n\nreturn {\n\n  json: {\n\n    ...currentData,\n\n    // Original structured AI result\n    screening_result: result,\n\n    // Email fields\n    hr_email_subject: emailSubject,\n\n    hr_email_html: emailHtml,\n\n    // Useful individual fields\n    candidate_name: candidateName,\n\n    candidate_score: score,\n\n    candidate_decision: decision,\n\n    matched_skills: matchedSkills,\n\n    missing_skills: missingSkills,\n\n    experience_match: experienceMatch,\n\n    strengths: strengths,\n\n    concerns: concerns,\n\n    recruiter_summary: recruiterSummary,\n\n    job_title: jobTitle,\n\n    // Helpful while testing\n    debug: debugData\n\n  },\n\n\n  // Keep the uploaded resume\n  binary: binary\n\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        -432
+      ],
+      "id": "294b68a2-d011-49b0-ae3e-57fbb424cdd5",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Shortlisted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shortlisted": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HR Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "11fabc4f-c4a1-4a5a-b4d9-ec7c0e08c45c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0db25aff814d9d346b0e6d897946122cfc12e064b6e58ff53ffd8c9cc948ff20"
+  },
+  "nodeGroups": [],
+  "id": "nKJmDZFF7YKFqWtp",
+  "tags": []
+}
