@@ -1,0 +1,328 @@
+{
+  "name": "Engineering Assistant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -256,
+        -48
+      ],
+      "id": "f4ea9861-be19-41f5-a11e-80a639ed5be6",
+      "name": "Telegram Trigger",
+      "webhookId": "dd55feaf-7fa9-4ea7-b4ab-8668d4cd8634",
+      "credentials": {
+        "telegramApi": {
+          "id": "UDBRZZAGn2ftgpj4",
+          "name": "Telegram account 82"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are an Engineering Assistant.\n\nYou can do two kinds of jobs:\n\n1. Answer engineering questions.\nWhen the user asks about deployment processes or PR review guidelines, use the engineering knowledge base tool.\n\n2. Perform actions.\nWhen the user asks to create a task, send an email, or schedule a meeting, use the available MCP tools.\n\nAlways use a tool when the user explicitly asks you to perform an action.\n\nAfter performing an action, clearly confirm what was done.\n\nDo not claim an action was completed unless the tool actually succeeded."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -32,
+        -48
+      ],
+      "id": "bf4f8937-710b-4b2b-9e88-9f80b48ce077",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-lite-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        160
+      ],
+      "id": "6dcf65ac-fb95-415d-9621-61c11d43d02f",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        -80
+      ],
+      "id": "6ba7047b-0190-4712-a370-0d614aab4345",
+      "name": "Send a text message",
+      "webhookId": "a5b059af-fbe7-4239-abfa-aa00d9fdf97d",
+      "credentials": {
+        "telegramApi": {
+          "id": "UDBRZZAGn2ftgpj4",
+          "name": "Telegram account 82"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        576,
+        144
+      ],
+      "id": "88d0932f-8be9-4e05-b210-33480e918e04",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4e92588e-291a-4294-a8af-681fce7e21bc",
+              "name": "text",
+              "value": "ENGINEERING KNOWLEDGE BASE  DEPLOYMENT CHECKLIST  Before deploying a new release:  1. Make sure all automated tests are passing. 2. Confirm the pull request has been reviewed and approved. 3. Merge the approved code into the main branch. 4. Check that all required environment variables are configured. 5. Run the application build successfully. 6. Deploy first to the staging environment. 7. Perform a quick smoke test on staging. 8. Check application logs for errors. 9. Get final approval before production deployment. 10. Deploy to production. 11. Run another smoke test after deployment. 12. Monitor logs and important metrics for at least 15 minutes. 13. If a serious problem appears, follow the rollback procedure.  PR REVIEW GUIDELINES  When reviewing a pull request:  1. Make sure the PR has a clear title and description. 2. Understand what problem the PR is trying to solve. 3. Check that the code is easy to read and maintain. 4. Look for unnecessary complexity or duplicated code. 5. Check for possible bugs and edge cases. 6. Make sure error handling is included where needed. 7. Check for security or privacy problems. 8. Confirm tests have been added or updated. 9. Make sure existing tests are still passing. 10. Check that no secrets, API keys, or passwords were committed. 11. Leave clear and respectful review comments. 12. Approve the PR only when important issues have been resolved.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        816,
+        112
+      ],
+      "id": "eb5247c2-d6f3-4f59-84b8-0c1b6497fa32",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        },
+        "clearStore": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        1024,
+        144
+      ],
+      "id": "743138e6-16fc-4680-81a9-a7ff5fd0158d",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        1088,
+        368
+      ],
+      "id": "06a35622-fbd7-4293-8f0f-89f01cde645c",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        912,
+        432
+      ],
+      "id": "14551a49-e554-4a7f-9352-269c90c7016b",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Search the engineering knowledge base for deployment procedures and pull request review guidelines. Use this tool when the user asks questions about engineering processes.",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        224
+      ],
+      "id": "4015223e-1471-486a-9272-5e9c7399a910",
+      "name": "Simple Vector Store1"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://airtribe.app.n8n.cloud/mcp/4c45f956-586d-410b-a251-b3561601f766",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        96,
+        192
+      ],
+      "id": "5e676e80-62f7-4f85-9ab0-cbbfb601d381",
+      "name": "MCP Client"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Simple Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9763990d-582d-45bf-a4d3-95c999f7fc36",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0db25aff814d9d346b0e6d897946122cfc12e064b6e58ff53ffd8c9cc948ff20"
+  },
+  "nodeGroups": [],
+  "id": "NEdEW39CA0PIShP3",
+  "tags": []
+}
