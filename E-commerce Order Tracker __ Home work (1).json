@@ -1,0 +1,383 @@
+{
+  "name": "E-commerce Order Tracker || Home work",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "{subject:\"order confirmed\" subject:\"order placed\" subject:\"payment successful\"}"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        0
+      ],
+      "id": "6f6ebdd2-c8b3-4f4b-84cc-ce4cce206b24",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "i40FTnyFvlRFkWME",
+          "name": "Karan Bhati"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "emails",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "a3805eed-1cea-4b7c-b247-6498d1a090e2",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an e-commerce order extraction assistant.\n\nYou will receive a list of order confirmation emails.\n\nRead EVERY email and create one order result for each email.\n\nFor each email extract:\n\n- email_id\n- store\n- order_id\n- items\n- amount\n- currency\n- order_date\n- delivery_date\n- category\n- ai_reasoning\n\nRules:\n\n1. Never make up information.\n2. If information is missing, return null.\n3. Keep the email ID exactly as it appears in the email data.\n4. \"items\" must be a list of product names.\n5. \"amount\" must only be a number.\n6. Currency should be something like INR, USD, EUR or GBP.\n7. Dates should use YYYY-MM-DD when possible.\n8. Category must be exactly one of:\n   Electronics\n   Clothing\n   Groceries\n   Beauty\n   Books\n   Home\n   Food\n   Other\n9. ai_reasoning should be one short sentence explaining why you chose the category.\n10. Return one order for every email you receive.\n\nHere are the emails:\n\n{{ JSON.stringify($json.emails) }}",
+        "hasOutputParser": true,
+        "needsFallback": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        240,
+        0
+      ],
+      "id": "0ac06ee2-fca8-4524-a862-87b660148448",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        208
+      ],
+      "id": "62871162-b036-4a86-b996-262b9663c7c1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"orders\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"email_id\": {\n            \"type\": \"string\"\n          },\n          \"store\": {\n            \"type\": \"string\"\n          },\n          \"order_id\": {\n            \"type\": \"string\"\n          },\n          \"items\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\"\n            }\n          },\n          \"amount\": {\n            \"type\": \"number\"\n          },\n          \"currency\": {\n            \"type\": \"string\"\n          },\n          \"order_date\": {\n            \"type\": \"string\"\n          },\n          \"delivery_date\": {\n            \"type\": \"string\"\n          },\n          \"category\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"Electronics\",\n              \"Clothing\",\n              \"Groceries\",\n              \"Beauty\",\n              \"Books\",\n              \"Home\",\n              \"Food\",\n              \"Other\"\n            ]\n          },\n          \"ai_reasoning\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"email_id\",\n          \"store\",\n          \"order_id\",\n          \"items\",\n          \"amount\",\n          \"currency\",\n          \"order_date\",\n          \"delivery_date\",\n          \"category\",\n          \"ai_reasoning\"\n        ]\n      }\n    }\n  },\n  \"required\": [\"orders\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        416,
+        208
+      ],
+      "id": "0b41ab63-077f-45c4-b3be-f475c36df38c",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        304
+      ],
+      "id": "e6d4b36d-928a-4e9a-9529-f3d61a22c98e",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "BLpUoe0L4PDH5WJo",
+          "name": "Google Gemini(PaLM) Api account 223"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.orders",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        608,
+        0
+      ],
+      "id": "63a55e51-41c6-4879-af14-75991b02690c",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1-IaLHJ9W8c6x6FnlbsP3J1DMpMyUicEwee4IOsGbbBw",
+          "mode": "list",
+          "cachedResultName": "E-commerce Order Tracker",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-IaLHJ9W8c6x6FnlbsP3J1DMpMyUicEwee4IOsGbbBw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1-IaLHJ9W8c6x6FnlbsP3J1DMpMyUicEwee4IOsGbbBw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $now.toISO() }}",
+            "Email ID": "={{ $json.email_id }}",
+            "Store": "={{ $json.store }}",
+            "Order ID": "={{ $json.order_id }}",
+            "Items": "={{ $json.items.join(', ') }}",
+            "Amount": "={{ $json.amount }}",
+            "Currency": "={{ $json.currency }}",
+            "Order Date": "={{ $json.order_date }}",
+            "Delivery Date": "={{ $json.delivery_date }}",
+            "Category": "={{ $json.category }}",
+            "AI Reasoning": "={{ $json.ai_reasoning }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email ID",
+              "displayName": "Email ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Store",
+              "displayName": "Store",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order ID",
+              "displayName": "Order ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Items",
+              "displayName": "Items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Currency",
+              "displayName": "Currency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Order Date",
+              "displayName": "Order Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delivery Date",
+              "displayName": "Delivery Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "AI Reasoning",
+              "displayName": "AI Reasoning",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        0
+      ],
+      "id": "3ba39e82-1fef-4832-bb76-cd2d220deafc",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "iVBNp1rEHYlixILr",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "ec8e389b-ac93-4fec-86ed-283d32554a8c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0db25aff814d9d346b0e6d897946122cfc12e064b6e58ff53ffd8c9cc948ff20"
+  },
+  "nodeGroups": [],
+  "id": "k4IeZUVpW5rXQh6D",
+  "tags": []
+}
